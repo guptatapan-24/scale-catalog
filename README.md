@@ -2,6 +2,22 @@
 
 ScaleCatalog is a highly optimized product catalog API and dashboard designed to handle large-scale datasets (~200,000 products) with sub-10ms query times. It implements **stable keyset (cursor-based) pagination** to guarantee data consistency and eliminate pagination drift (duplicate or skipped items) under heavy concurrent write operations.
 
+**Live Demo**: [https://scale-catalog.onrender.com](https://scale-catalog.onrender.com)
+
+---
+
+## Verification Flow (How to Test Pagination Stability)
+
+To verify the core requirement of displaying stable pagination under concurrent inserts without duplicates or skipped items:
+
+1.  **Load Page 1**: Navigate to the live demo. Observe the initial list of items (e.g. #1 to #20). Write down or note the name/ID of the last product at the bottom of the screen.
+2.  **Simulate Concurrent Background Traffic**: In the "Real-time Generator" card on the right-hand panel, select a category and click **"Insert 50 New Products at Top"**. This instantly writes 50 new items with the current timestamp into the database.
+3.  **Navigate to Page 2**: Click **"Next Page"**. 
+    *   **Expected Result**: Page 2 starts exactly with the chronological successor of the product noted down in Step 1 (e.g. if the last item on Page 1 was Product 20, the first item on Page 2 will be Product 21). The 50 new items are filtered out because their timestamps are newer than the active page cursor.
+4.  **Load Newest Items**: Click **"Reset Feed"** (or refresh the page). This loads Page 1 without a cursor, fetching the newest records from the absolute top, where the newly inserted items now correctly appear.
+
+---
+
 ## Key Features
 
 *   **Stable Cursor-Based Pagination**: Employs tuple-based queries `(created_at, id) < (cursor_created_at, cursor_id)` to keep the pagination window immune to background insertions.
@@ -145,8 +161,10 @@ The server will start on port `5000`. You can access the UI dashboard at `http:/
 4. Click **Create Web Service**.
 
 ### 3. Seeding in Production
-1. Navigate to the **Shell** tab on the Render Web Service dashboard.
-2. Execute the seed command inside the container shell:
+Since Render's free tier does not support interactive container terminal/shell access, the easiest way to seed your production database is to run the seed script locally while pointing to your remote database:
+1. Temporarily paste your Neon production connection string into your local `.env` file as `DATABASE_URL`.
+2. Run the seeding command on your local machine:
    ```bash
    npm run seed
    ```
+3. Once completed, restore your local database connection string in your `.env` file. The production database is now fully populated.
