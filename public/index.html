@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScaleCatalog | Stable Cursor Pagination Demo</title>
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #131b2e;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-success: #10b981;
+      --accent-success-hover: #059669;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-blur: blur(12px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+    }
+
+    header {
+      padding: 2rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(11, 15, 25, 0.7);
+      backdrop-filter: var(--glass-blur);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      background: linear-gradient(135deg, var(--accent), #10b981);
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ffffff, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards and Glassmorphism */
+    .card {
+      background: var(--glass-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 1.25rem;
+      padding: 1.5rem;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    /* Controls Panel */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .control-group label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    select, input, button {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      color: var(--text-main);
+      padding: 0.75rem 1.25rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    button.btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Product Grid/List */
+    .products-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .products-count {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-height: 400px;
+    }
+
+    .product-row {
+      display: grid;
+      grid-template-columns: 80px 2fr 1fr 1fr 1.5fr;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      transition: all 0.2s ease;
+    }
+
+    .product-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: scale(1.005);
+    }
+
+    .product-id {
+      font-family: monospace;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .product-name {
+      font-weight: 600;
+    }
+
+    .product-category {
+      background: rgba(99, 102, 241, 0.1);
+      color: #a5b4fc;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 2rem;
+      width: fit-content;
+      font-weight: 500;
+    }
+
+    .product-price {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      color: #10b981;
+    }
+
+    .product-time {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* Simulation and Side Panel */
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .simulation-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sim-badge {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    .sim-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .status-panel {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      padding-bottom: 0.25rem;
+    }
+    
+    .status-item:last-child {
+      border: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .status-val {
+      color: #a5b4fc;
+      word-break: break-all;
+      max-width: 180px;
+      text-align: right;
+    }
+
+    /* Pagination Actions */
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2rem;
+    }
+
+    .pag-info {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .pag-buttons {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: rgba(16, 185, 129, 0.95);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      backdrop-filter: var(--glass-blur);
+      display: none;
+      z-index: 100;
+      animation: slideIn 0.3s ease;
+      font-weight: 600;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(1rem); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Loading shimmer */
+    .shimmer {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 25%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.02) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">SC</div>
+      <div>
+        <h1>ScaleCatalog</h1>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">Real-time pagination under concurrent insertions</p>
+      </div>
+    </div>
+    <div style="font-size: 0.85rem; background: rgba(99,102,241,0.15); padding: 0.5rem 1rem; border-radius: 2rem; border: 1px solid rgba(99,102,241,0.3)">
+      🚀 Constant-time paginated queries $O(\log N)$
+    </div>
+  </header>
+
+  <main class="container">
+    <div>
+      <div class="card">
+        <!-- Controls -->
+        <div class="controls">
+          <div class="control-group">
+            <label for="category-filter">Category</label>
+            <select id="category-filter">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="limit-select">Page Size</label>
+            <select id="limit-select">
+              <option value="10">10 items</option>
+              <option value="20" selected>20 items</option>
+              <option value="50">50 items</option>
+            </select>
+          </div>
+          <div style="margin-left: auto; align-self: flex-end;">
+            <button id="reset-btn" class="btn-secondary">Reset Feed</button>
+          </div>
+        </div>
+
+        <!-- Products List Header -->
+        <div class="products-header">
+          <h2 style="font-family: 'Outfit'; font-size: 1.25rem;">Live Feed (Newest First)</h2>
+          <div class="products-count" id="products-count">Showing 0 products</div>
+        </div>
+
+        <!-- Product Table -->
+        <div class="product-list" id="product-list-container">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar">
+          <div class="pag-info" id="pag-info">Page 1</div>
+          <div class="pag-buttons">
+            <button id="prev-btn" class="btn-secondary" disabled>← Previous Page</button>
+            <button id="next-btn" disabled>Next Page →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side Panel: Stats and Simulation -->
+    <div class="side-panel">
+      <!-- Cursor Diagnostics -->
+      <div class="card">
+        <div class="simulation-title">
+          <div class="sim-badge" style="background-color: var(--accent);"></div>
+          <span>Pagination Diagnostics</span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Observe active pagination cursors (base64-serialized row keys) as you navigate.
+        </p>
+        <div class="status-panel">
+          <div class="status-item">
+            <span>Stack Depth:</span>
+            <span class="status-val" id="diag-stack-depth">1</span>
+          </div>
+          <div class="status-item">
+            <span>Current Cursor:</span>
+            <span class="status-val" id="diag-curr-cursor">null (First Page)</span>
+          </div>
+          <div class="status-item">
+            <span>Next Cursor:</span>
+            <span class="status-val" id="diag-next-cursor">null</span>
+          </div>
+          <div class="status-item">
+            <span>Has More:</span>
+            <span class="status-val" id="diag-has-more">false</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-time Simulator -->
+      <div class="card">
+        <div class="simulation-title">
+          <div class="sim-badge"></div>
+          <span>Real-time Generator</span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Simulate background traffic. Insert products to test how cursor-based pagination remains 100% stable while scrolling.
+        </p>
+        <div class="sim-form">
+          <div class="control-group">
+            <label for="sim-category">Category</label>
+            <select id="sim-category">
+              <option value="Electronics">Electronics</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Home & Kitchen">Home & Kitchen</option>
+              <option value="Books">Books</option>
+              <option value="Sports & Outdoors">Sports & Outdoors</option>
+            </select>
+          </div>
+          <button id="sim-insert-btn" class="btn-success" style="background: var(--accent-success)">
+            Insert 5 New Products at Top
+          </button>
+          <button id="sim-bulk-insert-btn" class="btn-secondary" style="margin-top: 0.25rem;">
+            Insert 50 New Products at Top
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast-message">Successfully simulated background insertion!</div>
+
+  <script>
+    // State management
+    let category = '';
+    let limit = 20;
+    
+    // Keyset pagination navigation stack
+    // index 0 matches Page 1 (null cursor)
+    let cursorStack = [null]; 
+    let currentPageIndex = 0;
+    
+    let hasMore = false;
+    let nextCursor = null;
+
+    // DOM Elements
+    const productListContainer = document.getElementById('product-list-container');
+    const categoryFilter = document.getElementById('category-filter');
+    const limitSelect = document.getElementById('limit-select');
+    const resetBtn = document.getElementById('reset-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const productsCount = document.getElementById('products-count');
+    const pagInfo = document.getElementById('pag-info');
+    
+    // Diagnostics Elements
+    const diagStackDepth = document.getElementById('diag-stack-depth');
+    const diagCurrCursor = document.getElementById('diag-curr-cursor');
+    const diagNextCursor = document.getElementById('diag-next-cursor');
+    const diagHasMore = document.getElementById('diag-has-more');
+    
+    // Simulation Elements
+    const simCategory = document.getElementById('sim-category');
+    const simInsertBtn = document.getElementById('sim-insert-btn');
+    const simBulkInsertBtn = document.getElementById('sim-bulk-insert-btn');
+    const toast = document.getElementById('toast-message');
+
+    // Fetch Categories
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/categories');
+        const json = await res.json();
+        if (json.success) {
+          json.data.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            categoryFilter.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load categories', err);
+      }
+    }
+
+    // Render loading state
+    function renderShimmer() {
+      productListContainer.innerHTML = '';
+      for (let i = 0; i < limit; i++) {
+        const item = document.createElement('div');
+        item.className = 'product-row shimmer';
+        item.style.height = '62px';
+        productListContainer.appendChild(item);
+      }
+    }
+
+    // Fetch and render products
+    async function fetchProducts() {
+      renderShimmer();
+      
+      const activeCursor = cursorStack[currentPageIndex];
+      let url = `/api/products?limit=${limit}`;
+      if (category) url += `&category=${encodeURIComponent(category)}`;
+      if (activeCursor) url += `&cursor=${encodeURIComponent(activeCursor)}`;
+
+      try {
+        console.log(`Fetching: ${url}`);
+        const res = await fetch(url);
+        const json = await res.json();
+        
+        if (!json.success) {
+          productListContainer.innerHTML = `<div style="padding:2rem; text-align:center; color:red;">Error: ${json.error}</div>`;
+          return;
+        }
+
+        const products = json.data;
+        hasMore = json.has_more;
+        nextCursor = json.next_cursor;
+
+        // Render List
+        productListContainer.innerHTML = '';
+        if (products.length === 0) {
+          productListContainer.innerHTML = '<div style="padding:3rem; text-align:center; color:var(--text-muted);">No products found. Run seed script first.</div>';
+        } else {
+          products.forEach(p => {
+            const formattedTime = new Date(p.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const item = document.createElement('div');
+            item.className = 'product-row';
+            item.innerHTML = `
+              <div class="product-id">#${p.id}</div>
+              <div class="product-name">${p.name}</div>
+              <div><span class="product-category">${p.category}</span></div>
+              <div class="product-price">$${parseFloat(p.price).toFixed(2)}</div>
+              <div class="product-time">${formattedTime}</div>
+            `;
+            productListContainer.appendChild(item);
+          });
+        }
+
+        // Update counts and buttons
+        productsCount.textContent = `Showing ${products.length} product(s) (Page ${currentPageIndex + 1})`;
+        pagInfo.textContent = `Page ${currentPageIndex + 1}`;
+        
+        prevBtn.disabled = currentPageIndex === 0;
+        nextBtn.disabled = !hasMore;
+
+        // Update Diagnostics UI
+        diagStackDepth.textContent = cursorStack.length;
+        diagCurrCursor.textContent = activeCursor ? activeCursor.slice(0, 16) + '...' : 'null (First Page)';
+        diagNextCursor.textContent = nextCursor ? nextCursor.slice(0, 16) + '...' : 'null (Last Page)';
+        diagHasMore.textContent = hasMore.toString();
+
+      } catch (err) {
+        console.error('API call failed', err);
+        productListContainer.innerHTML = '<div style="padding:2rem; text-align:center; color:red;">Failed to connect to backend server. Ensure it is running!</div>';
+      }
+    }
+
+    // Handlers
+    function resetPagination() {
+      cursorStack = [null];
+      currentPageIndex = 0;
+    }
+
+    categoryFilter.addEventListener('change', (e) => {
+      category = e.target.value;
+      resetPagination();
+      fetchProducts();
+    });
+
+    limitSelect.addEventListener('change', (e) => {
+      limit = parseInt(e.target.value, 10);
+      resetPagination();
+      fetchProducts();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      categoryFilter.value = '';
+      category = '';
+      limitSelect.value = '20';
+      limit = 20;
+      resetPagination();
+      fetchProducts();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (hasMore && nextCursor) {
+        currentPageIndex++;
+        // If this page index has not been visited yet, push the cursor
+        if (currentPageIndex >= cursorStack.length) {
+          cursorStack.push(nextCursor);
+        }
+        fetchProducts();
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentPageIndex > 0) {
+        currentPageIndex--;
+        fetchProducts();
+      }
+    });
+
+    // Insertion Simulator
+    async function simulateInsert(count) {
+      const selectedCat = simCategory.value;
+      
+      simInsertBtn.disabled = true;
+      simBulkInsertBtn.disabled = true;
+
+      try {
+        for (let i = 0; i < count; i++) {
+          await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: `Simulated Product (Background) ${Date.now() % 10000}`,
+              category: selectedCat,
+              price: (Math.random() * 50 + 10).toFixed(2)
+            })
+          });
+        }
+        
+        // Show Toast
+        toast.textContent = `Successfully simulated background insertion of ${count} product(s)!`;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        
+      } catch (err) {
+        console.error('Failed to simulate insert', err);
+      } finally {
+        simInsertBtn.disabled = false;
+        simBulkInsertBtn.disabled = false;
+      }
+    }
+
+    simInsertBtn.addEventListener('click', () => simulateInsert(5));
+    simBulkInsertBtn.addEventListener('click', () => simulateInsert(50));
+
+    // Initialization
+    loadCategories();
+    fetchProducts();
+  </script>
+</body>
+</html>
